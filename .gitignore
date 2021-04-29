@@ -1,0 +1,8 @@
+./*/.venv/
+./*/__pycache__
+./*/.vscode/
+Tablut-Player/logs/
+Tablut-Player/garbage/
+Tablut-MCTS/build
+Tablut-MCTS/dist
+Tablut-MCTS/*.egg-info
