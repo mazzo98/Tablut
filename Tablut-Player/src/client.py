@@ -161,6 +161,8 @@ def setup_args():
                         type=int, default=WHITE_DEFAULT_MAX_DEPTH)
     parser.add_argument('-c', '--c', dest='C',
                         type=int, default=np.sqrt(2))
+    parser.add_argument('-w', '--workers', dest='workers',
+                        type=int,  default=mp.cpu_count())
     args = parser.parse_args()
     return args
 
@@ -175,6 +177,7 @@ if __name__ == "__main__":
     else:
         max_depth = args.max_depth
     C = args.C
+    workers = args.workers
     timeout = int(args.timeout) - 5
 
     c1 = Client(args.ip, PORTS[player_arg], player_arg)
@@ -195,7 +198,7 @@ if __name__ == "__main__":
                 print(state, turn)
             if game.turn == OUR_PLAYER:
                 mcts = MCTS(deepcopy(game), OUR_PLAYER,
-                            max_depth=max_depth, C=C)
+                            max_depth=max_depth, C=C, parallel=workers)
                 start, end = mcts.search(timeout)
                 print(start, end)
                 c1.send_move(start, end)

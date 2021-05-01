@@ -1,8 +1,11 @@
 ./*/.venv/
 ./*/__pycache__
 ./*/.vscode/
-Tablut-Player/logs/
+Tablut-Player/tablut_java/logs/
 Tablut-Player/garbage/
 Tablut-MCTS/build
 Tablut-MCTS/dist
 Tablut-MCTS/*.egg-info
+Tablutpy/build/
+Tablutpy/dist/
+Tablutpy/tablutpy.egg-info/

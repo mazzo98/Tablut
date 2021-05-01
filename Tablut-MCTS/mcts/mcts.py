@@ -5,6 +5,8 @@ import itertools
 from tablut.rules.ashton import Board, Player
 from tablut.game import Game, WinException, LoseException, DrawException
 import time
+import multiprocessing
+import collections
 
 BOARD_SIDE = 9
 BOARD_SIZE = BOARD_SIDE * BOARD_SIDE
@@ -30,6 +32,51 @@ def deflatten_move(move: int) -> tuple:
     end = divmod(end, BOARD_SIDE)
     return start, end
 
+
+class SearchWorker (multiprocessing.Process):
+    def __init__(self, root_state, max_time, queue, max_depth, number):
+        multiprocessing.Process.__init__(self)
+        self._root_state = root_state
+        self._max_time = max_time
+        self._needed_moves = list()
+        self._max_depth = max_depth
+        self._queue = queue
+        self._number = number
+    
+    def run(self):
+        start_t = time.time()
+        self.simulations = 0
+
+        while ((time.time() - start_t)) <= self._max_time:
+            # select leaf
+            leaf = self._root_state.select_leaf()
+            # obtain a new leaf
+            leaf = leaf.expand()
+            # save the number of moves needed to reach this leaf
+            used_moves = self._max_depth - leaf.remaining_moves
+            self._needed_moves.append(used_moves)
+            # propagate leaf result
+            leaf.backup()
+
+            # the number of simulations carried out
+            self.simulations += 1
+
+        print("MCTS %d performed %d simulations" % (self._number, self.simulations))
+
+        # search for best move
+        for move, node in self._root_state.children.items():
+            print("Move %s -> %s, %s/%s" %
+                  (*deflatten_move(move), node.total_value, node.number_visits))
+
+        move, node = max(self._root_state.children.items(),
+                         key=lambda item: (item[1].total_value / item[1].number_visits))
+
+        values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root_state.children.items()])
+
+        self._queue.put(values)
+
+    def get_result(self):
+        return self._queue.get()
 
 class Node(object):
     """
@@ -174,8 +221,9 @@ class Node(object):
         Expand the game by taking random actions until a win condition is met
         """
         current = self
+        rng = np.random.default_rng()
         while not current.game.ended and current.remaining_moves > 0:
-            move = np.random.choice(current.legal_moves)
+            move = rng.choice(current.legal_moves)
             current = current.maybe_add_child(move)
         return current
 
@@ -269,13 +317,14 @@ class MCTS(object):
     # TODO: Implement self-adjusting heuristics? Later in the game being near the escape is more important than having less pieces
     """
 
-    def __init__(self, game_state, playing_as, max_depth=20, C=np.sqrt(2)):
+    def __init__(self, game_state, playing_as, max_depth=20, C=np.sqrt(2), parallel=multiprocessing.cpu_count()):
         self.C = C
         self.game = deepcopy(game_state)
         self.playing_as = playing_as
         self._needed_moves = list()
         self.max_depth = max_depth
         self.simulations = 0
+        self.parallel_count = parallel
         self._root = Root(game_state, playing_as,
                           remaining_moves=max_depth, C=self.C)
 
@@ -304,52 +353,31 @@ class MCTS(object):
         """
         Perform search using a specified amount of simulations
         Max time represents the number of secs before timeout
-        # TODO: Detect if multiple CPUs and implement multithread search? (Node is not thread safe)
         """
-        start = self._root
-        start_t = time.time()
+        workers = []
+    
+        #We use root parallelization approach where each workers create and explore its own tree.
+        #At the end we merge resulting trees and we select best move from it
+        for i in range(self.parallel_count):
+            w = SearchWorker(deepcopy(self._root), max_time, multiprocessing.Queue(), self.max_depth, i)
+            print("Workers %s" % i)
+            workers.append(w)
+        
+        for w in workers:
+            w.start()
+         
+        results = []
+        for w in workers:
+            results.append(w.get_result())
+            w.join()
 
-        self.simulations = 0
-
-        # save seconds per simulation so we can safely know wether another simulation can be done
-        s_per_simulation = list()
-        def avg(l): return 0 if len(l) == 0 else sum(l) / len(l)
-
-        # while we have some time left
-        while ((time.time() - start_t) + avg(s_per_simulation)) <= max_time:
-            # select leaf
-            leaf = start.select_leaf()
-            # obtain a new leaf
-            leaf = leaf.expand()
-            # save the number of moves needed to reach this leaf
-            used_moves = self.max_depth - leaf.remaining_moves
-            self._needed_moves.append(used_moves)
-            # propagate leaf result
-            leaf.backup()
-
-            # the number of simulations carried out
-            self.simulations += 1
-            print("MCTS perfomed simulation: %s with %d moves" %
-                  (self.simulations, used_moves), end="\r")
-
-        print("MCTS performed %d simulations" % self.simulations)
-
-        # adapt new max_depth based on past needed moves
-        # TODO: Works?
-        avg = sum(self._needed_moves) / len(self._needed_moves)
-        self.max_depth = int(avg)
-
-        # search for best move
-        for move, node in start.children.items():
-            print("Move %s -> %s, %s/%s" %
-                  (*deflatten_move(move), node.total_value, node.number_visits))
-
-        move, node = max(start.children.items(),
-                         key=lambda item: (item[1].total_value / item[1].number_visits))
-
-        self._root = node
-        #self._root.remaining_moves = self.max_depth
-        self.game = self._root.game
+        values = collections.defaultdict(float)  
+        for r in results:
+            for (move, value) in r.items():
+                values[move] += value
+        
+        move = max(values.items(), key=lambda item: item[1])[0]
+       
         return deflatten_move(move)
 
 
