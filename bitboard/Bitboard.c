@@ -49,7 +49,7 @@ void printLikeBoard(Bitboard b, int line)
             }
         }
     }
-    printf("\n");
+    printf("\n\n");
 }
 /*
 * computes bitwise AND between two bitboards
@@ -164,4 +164,29 @@ Bitboard leftShift(Bitboard from, int shift)
         printf("cases with shift over %ld not considered\n", 3 * INT_SIZE);
     }
     return to;
+}
+/*
+* sets a pawn to a given row,col position
+*/
+Bitboard setCellState(Bitboard from, int row, int col)
+{
+    Bitboard newBit;
+    newBit.bb[0] = 1 << INT_SIZE - 1;
+    newBit.bb[1] = 0;
+    newBit.bb[2] = 0;
+
+    return Or(from, rightShift(newBit, row * WIDTH + col));
+}
+/*
+* gets the state of a given row,col position
+*/
+int getCellState(Bitboard from, int row, int col)
+{
+    Bitboard mask;
+    mask.bb[0] = 1 << INT_SIZE - 1;
+    mask.bb[1] = 0;
+    mask.bb[2] = 0;
+
+    Bitboard res = And(from, rightShift(mask, row * WIDTH + col));
+    return res.bb[0] != 0 || res.bb[1] != 0 || res.bb[2] != 0;
 }

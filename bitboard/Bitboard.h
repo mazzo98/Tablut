@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #define INT_SIZE (8 * sizeof(uint32_t))
+#define WIDTH 9
 
 typedef struct
 {
@@ -26,3 +27,7 @@ Bitboard Not(Bitboard from);
 Bitboard rightShift(Bitboard from, int shift);
 
 Bitboard leftShift(Bitboard from, int shift);
+
+Bitboard setCellState(Bitboard from, int row, int col);
+
+int getCellState(Bitboard from, int row, int col);
