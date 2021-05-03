@@ -3,6 +3,7 @@
 
 #define INT_SIZE (8 * sizeof(uint32_t))
 #define WIDTH 9
+#define CORRECT_SHIFT 32767
 
 typedef struct
 {
@@ -31,3 +32,5 @@ Bitboard leftShift(Bitboard from, int shift);
 Bitboard setCellState(Bitboard from, int row, int col);
 
 int getCellState(Bitboard from, int row, int col);
+
+int countBitSet(Bitboard from);

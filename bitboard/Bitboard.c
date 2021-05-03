@@ -128,6 +128,9 @@ Bitboard rightShift(Bitboard from, int shift)
     {
         printf("cases with shift over %ld not considered\n", 3 * INT_SIZE);
     }
+    // need this because we consider just the first 81 bit out of 96
+    // so we need to mask out the last 15 bits
+    to.bb[2] = to.bb[2] & ~CORRECT_SHIFT;
     return to;
 }
 /*
@@ -137,7 +140,9 @@ Bitboard rightShift(Bitboard from, int shift)
 Bitboard leftShift(Bitboard from, int shift)
 {
     Bitboard to;
-    from.bb[2] = from.bb[2] & 4294934528;
+    // need this because we consider just the first 81 bit out of 96
+    // so we need to mask out the last 15 bits
+    from.bb[2] = from.bb[2] & ~CORRECT_SHIFT;
     if (shift < INT_SIZE)
     {
         int oppositeShift = INT_SIZE - shift;
@@ -190,4 +195,20 @@ int getCellState(Bitboard from, int row, int col)
 
     Bitboard res = And(from, rightShift(mask, row * WIDTH + col));
     return res.bb[0] != 0 || res.bb[1] != 0 || res.bb[2] != 0;
+}
+/*
+* gets the number of bit set to 1 in a bitboard
+*/
+int countBitSet(Bitboard from)
+{
+    int count = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        while (from.bb[i] != 0)
+        {
+            from.bb[i] = from.bb[i] & (from.bb[i] - 1);
+            count++;
+        }
+    }
+    return count;
 }
