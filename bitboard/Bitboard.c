@@ -137,6 +137,7 @@ Bitboard rightShift(Bitboard from, int shift)
 Bitboard leftShift(Bitboard from, int shift)
 {
     Bitboard to;
+    from.bb[2] = from.bb[2] & 4294934528;
     if (shift < INT_SIZE)
     {
         int oppositeShift = INT_SIZE - shift;
