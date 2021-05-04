@@ -29,6 +29,8 @@ Bitboard rightShift(Bitboard from, int shift);
 
 Bitboard leftShift(Bitboard from, int shift);
 
+Bitboard setBitboard(uint32_t first, uint32_t second, uint32_t third);
+
 Bitboard setCellState(Bitboard from, int row, int col);
 
 int getCellState(Bitboard from, int row, int col);

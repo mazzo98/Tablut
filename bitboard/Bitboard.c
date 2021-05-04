@@ -130,6 +130,7 @@ Bitboard rightShift(Bitboard from, int shift)
     }
     // need this because we consider just the first 81 bit out of 96
     // so we need to mask out the last 15 bits
+    // not necessary
     to.bb[2] = to.bb[2] & ~CORRECT_SHIFT;
     return to;
 }
@@ -170,6 +171,17 @@ Bitboard leftShift(Bitboard from, int shift)
         printf("cases with shift over %ld not considered\n", 3 * INT_SIZE);
     }
     return to;
+}
+/*
+* sets a bitboard given three int32
+*/
+Bitboard setBitboard(uint32_t first, uint32_t second, uint32_t third)
+{
+    Bitboard res;
+    res.bb[0] = first;
+    res.bb[1] = second;
+    res.bb[2] = third;
+    return res;
 }
 /*
 * sets a pawn to a given row,col position
