@@ -59,7 +59,7 @@ Bitboard And(Bitboard from1, Bitboard from2)
     Bitboard to;
     to.bb[0] = from1.bb[0] & from2.bb[0];
     to.bb[1] = from1.bb[1] & from2.bb[1];
-    to.bb[2] = from1.bb[2] & from2.bb[2];
+    to.bb[2] = (from1.bb[2] & from2.bb[2]) & ~CORRECT_SHIFT;
     return to;
 }
 /*
@@ -70,7 +70,7 @@ Bitboard Or(Bitboard from1, Bitboard from2)
     Bitboard to;
     to.bb[0] = from1.bb[0] | from2.bb[0];
     to.bb[1] = from1.bb[1] | from2.bb[1];
-    to.bb[2] = from1.bb[2] | from2.bb[2];
+    to.bb[2] = (from1.bb[2] | from2.bb[2]) & ~CORRECT_SHIFT;
     return to;
 }
 /*
@@ -81,7 +81,7 @@ Bitboard Xor(Bitboard from1, Bitboard from2)
     Bitboard to;
     to.bb[0] = from1.bb[0] ^ from2.bb[0];
     to.bb[1] = from1.bb[1] ^ from2.bb[1];
-    to.bb[2] = from1.bb[2] ^ from2.bb[2];
+    to.bb[2] = (from1.bb[2] ^ from2.bb[2]) & ~CORRECT_SHIFT;
     return to;
 }
 /*
@@ -92,7 +92,7 @@ Bitboard Not(Bitboard from)
     Bitboard to;
     to.bb[0] = ~(from.bb[0]);
     to.bb[1] = ~(from.bb[1]);
-    to.bb[2] = ~(from.bb[2]);
+    to.bb[2] = (~(from.bb[2])) & ~CORRECT_SHIFT;
     return to;
 }
 /*
@@ -130,7 +130,6 @@ Bitboard rightShift(Bitboard from, int shift)
     }
     // need this because we consider just the first 81 bit out of 96
     // so we need to mask out the last 15 bits
-    // not necessary
     to.bb[2] = to.bb[2] & ~CORRECT_SHIFT;
     return to;
 }
@@ -215,7 +214,7 @@ int countBitSet(Bitboard from)
 {
     // need this because we consider just the first 81 bit out of 96
     // so we need to mask out the last 15 bits
-    from.bb[2] = from.bb[2] & ~CORRECT_SHIFT;
+    //from.bb[2] = from.bb[2] & ~CORRECT_SHIFT;
     int count = 0;
     for (int i = 0; i < 3; i++)
     {

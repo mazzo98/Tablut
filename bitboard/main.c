@@ -56,21 +56,33 @@ int main(int argc, char *argv[])
     // printLikeBoard(b1.escape, WIDTH);
 
     Board b1;
-    b1.citadel = setBitboard(A_CITADEL_1, A_CITADEL_2, A_CITADEL_3);
-    printf("citadels (init blacks)\n");
-    printLikeBoard(b1.citadel, WIDTH);
-    b1.black = setBitboard(470024208, 471598080, 270270464);
-    b1.castle = setBitboard(A_CASTLE_1, A_CASTLE_2, A_CASTLE_3);
-    printf("castle (init king)\n");
-    printLikeBoard(b1.castle, WIDTH);
-    b1.king = setBitboard(0, 8388608, 0);
-    b1.white = setBitboard(A_WHITE_1, A_WHITE_2, A_WHITE_3);
-    printf("init whites\n");
-    printLikeBoard(b1.white, WIDTH);
+    // b1.citadel = setBitboard(A_CITADEL_1, A_CITADEL_2, A_CITADEL_3);
+    // printf("citadels (init blacks)\n");
+    // printLikeBoard(b1.citadel, WIDTH);
+    // b1.black = setBitboard(470024208, 471598080, 270270464);
+    // b1.castle = setBitboard(A_CASTLE_1, A_CASTLE_2, A_CASTLE_3);
+    // printf("castle (init king)\n");
+    // printLikeBoard(b1.castle, WIDTH);
+    b1.king = setBitboard(0, A_CASTLE_2, 0);
+    // b1.white = setBitboard(A_WHITE_1, A_WHITE_2, A_WHITE_3);
+    // printf("init whites\n");
+    // printLikeBoard(b1.white, WIDTH);
     b1.escape = setBitboard(A_ESCAPE_1, A_ESCAPE_2, A_ESCAPE_3);
-    printf("escapes\n");
-    printLikeBoard(b1.escape, WIDTH);
+    //printf("escapes\n");
+    //printLikeBoard(b1.escape, WIDTH);
 
-    printLikeBoard(Not(b1.citadel), WIDTH);
-    printf("%d\n", countBitSet(Not(b1.citadel)));
+    // printLikeBoard(Not(b1.citadel), WIDTH);
+    // printf("%d\n", countBitSet(Not(b1.citadel)));
+
+    //b1.king = setCellState(b1.king, 0, 1);
+    //printLikeBoard(b1.king, WIDTH);
+
+    b1.king = setCellState(b1.king, 0, 1);
+    int win = winning_condition(b1.king, b1.escape);
+    if (win == 1)
+        printf("hai vinto\n");
+
+    int lose = lose_condition(b1.king);
+    if (lose == 1)
+        printf("hai perso\n");
 }

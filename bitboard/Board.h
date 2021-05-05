@@ -27,13 +27,6 @@ typedef struct
 
 } Board;
 
-typedef struct
-{
-    Bitboard black;
-    Bitboard white;
-    Bitboard citadel;
-    Bitboard king;
-    Bitboard castle;
-    Bitboard escape;
+int winning_condition(Bitboard kingB, Bitboard escapeB);
 
-} AshtonBoard;
+int lose_condition(Bitboard kingB);
