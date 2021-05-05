@@ -213,6 +213,9 @@ int getCellState(Bitboard from, int row, int col)
 */
 int countBitSet(Bitboard from)
 {
+    // need this because we consider just the first 81 bit out of 96
+    // so we need to mask out the last 15 bits
+    from.bb[2] = from.bb[2] & ~CORRECT_SHIFT;
     int count = 0;
     for (int i = 0; i < 3; i++)
     {

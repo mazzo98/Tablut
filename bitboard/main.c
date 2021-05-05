@@ -70,4 +70,7 @@ int main(int argc, char *argv[])
     b1.escape = setBitboard(A_ESCAPE_1, A_ESCAPE_2, A_ESCAPE_3);
     printf("escapes\n");
     printLikeBoard(b1.escape, WIDTH);
+
+    printLikeBoard(Not(b1.citadel), WIDTH);
+    printf("%d\n", countBitSet(Not(b1.citadel)));
 }
