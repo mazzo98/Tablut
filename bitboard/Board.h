@@ -15,7 +15,7 @@
 #define A_ESCAPE_1 1665163296
 #define A_ESCAPE_2 515
 #define A_ESCAPE_3 23265280
-
+// citadel, castle e escape sono costanti quindi si potrebbe anche ometterle?
 typedef struct
 {
     Bitboard black;
@@ -30,3 +30,5 @@ typedef struct
 int winning_condition(Bitboard kingB, Bitboard escapeB);
 
 int lose_condition(Bitboard kingB);
+
+int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king);

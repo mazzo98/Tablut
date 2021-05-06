@@ -36,3 +36,5 @@ Bitboard setCellState(Bitboard from, int row, int col);
 int getCellState(Bitboard from, int row, int col);
 
 int countBitSet(Bitboard from);
+
+int allZero(Bitboard from);

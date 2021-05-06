@@ -1,4 +1,5 @@
 #include "Bitboard.h"
+#include "List.h"
 #include "Board.h"
 
 int main(int argc, char *argv[])
@@ -59,12 +60,12 @@ int main(int argc, char *argv[])
     // b1.citadel = setBitboard(A_CITADEL_1, A_CITADEL_2, A_CITADEL_3);
     // printf("citadels (init blacks)\n");
     // printLikeBoard(b1.citadel, WIDTH);
-    // b1.black = setBitboard(470024208, 471598080, 270270464);
+    b1.black = setBitboard(470024208, 471598080, 270270464);
     // b1.castle = setBitboard(A_CASTLE_1, A_CASTLE_2, A_CASTLE_3);
     // printf("castle (init king)\n");
     // printLikeBoard(b1.castle, WIDTH);
     b1.king = setBitboard(0, A_CASTLE_2, 0);
-    // b1.white = setBitboard(A_WHITE_1, A_WHITE_2, A_WHITE_3);
+    b1.white = setBitboard(A_WHITE_1, A_WHITE_2, A_WHITE_3);
     // printf("init whites\n");
     // printLikeBoard(b1.white, WIDTH);
     b1.escape = setBitboard(A_ESCAPE_1, A_ESCAPE_2, A_ESCAPE_3);
@@ -85,4 +86,10 @@ int main(int argc, char *argv[])
     int lose = lose_condition(b1.king);
     if (lose == 1)
         printf("hai perso\n");
+
+    node_t *head = NULL;
+    //first node: initial state
+    append(&head, b1.black, b1.white, b1.king);
+    push(&head, Not(b1.black), b1.white, b1.king);
+    printList(head);
 }

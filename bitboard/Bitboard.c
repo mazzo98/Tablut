@@ -226,3 +226,10 @@ int countBitSet(Bitboard from)
     }
     return count;
 }
+/*
+* if Bitboard is all zero than return 1
+*/
+int allZero(Bitboard from)
+{
+    return from.bb[0] == 0 && from.bb[1] == 0 && from.bb[2] == 0;
+}

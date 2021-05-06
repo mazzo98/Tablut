@@ -1,4 +1,5 @@
 #include "Bitboard.h"
+#include "List.h"
 #include "Board.h"
 
 /*
@@ -8,12 +9,26 @@ int winning_condition(Bitboard kingB, Bitboard escapeB)
 {
     Bitboard res = And(kingB, escapeB);
     //printLikeBoard(res, WIDTH);
-    return !(res.bb[0] == 0 && res.bb[1] == 0 && res.bb[2] == 0);
+    return !allZero(res);
 }
 /*
 * if there's no king you lose (1:lose) 
 */
 int lose_condition(Bitboard kingB)
 {
-    return kingB.bb[0] == 0 && kingB.bb[1] == 0 && kingB.bb[2] == 0;
+    return allZero(kingB);
+}
+/*
+* if the current state is present in the list then it's a draw (return 1)
+*/
+int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king)
+{
+    while (n != NULL)
+    {
+        if (allZero(Xor(black, n->black)) && allZero(Xor(white, n->white)) && allZero(Xor(king, n->king)))
+            return 1;
+        else
+            n = n->next;
+    }
+    return 0;
 }
