@@ -1,7 +1,5 @@
 from tablut.game import Player
 from tablut.board import WinException, LoseException, DrawException
-import threading
-from time import sleep
 from random import randint
 
 

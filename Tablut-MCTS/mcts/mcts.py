@@ -1,17 +1,14 @@
 import math
 import numpy as np
-from copy import deepcopy
-import itertools
-from tablut.rules.ashton import Board, Player
-from tablut.game import Game, WinException, LoseException, DrawException
 import time
 import multiprocessing
 import collections
 
+from tablut.rules.ashton import Board, Player
+from copy import deepcopy
+
 BOARD_SIDE = 9
 BOARD_SIZE = BOARD_SIDE * BOARD_SIDE
-ACTION_SPACE_SIZE = BOARD_SIZE**2
-
 
 def flatten_move(start: tuple, end: tuple) -> int:
     flattened_start = (start[0] * BOARD_SIDE) + start[1]
@@ -261,8 +258,6 @@ class Node(object):
         """
         ended = self.game.ended
         won = self.game.winner is self.playing_as
-        if (won):
-            print(self.playing_as, ended, won)
         current = self
         while current.parent is not None:
             current.number_visits += 1
@@ -311,43 +306,13 @@ class Root(Node):
 class MCTS(object):
     """
     Perform montecarlo tree search on the tablut game.
-    # TODO: Implement adaptive max_depth? Detect how useless a reached state is?
-    # TODO: Implement adaptive simulation? If we can do few legal moves it makes sense doing more simulations
-    # TODO: Implement exploratory-quality-heuristics weights?
-    # TODO: Implement self-adjusting heuristics? Later in the game being near the escape is more important than having less pieces
     """
 
     def __init__(self, game_state, playing_as, max_depth=20, C=np.sqrt(2), parallel=multiprocessing.cpu_count()):
-        self.C = C
-        self.game = deepcopy(game_state)
-        self.playing_as = playing_as
-        self._needed_moves = list()
         self.max_depth = max_depth
-        self.simulations = 0
         self.parallel_count = parallel
         self._root = Root(game_state, playing_as,
-                          remaining_moves=max_depth, C=self.C)
-
-    @property
-    def root(self):
-        return self._root
-
-    def new_root(self, start, end):
-        """
-        Set as root the node obtained by applying the specified move in the current state
-        """
-        m = flatten_move(start, end)
-        if m in self._root.children:
-            self._root = self._root.children[m]
-        else:
-            # move is not available among root children so we obtain it manually
-            if self.game.turn is Player.WHITE:
-                self.game.white_move(start, end, known_legal=True)
-            else:
-                self.game.black_move(start, end, known_legal=True)
-
-            self._root = Root(self.game, remaining_moves=self.max_depth,
-                              heuristic=self.heuristic)
+                          remaining_moves=max_depth, C=C)
 
     def search(self, max_time):
         """
@@ -379,18 +344,3 @@ class MCTS(object):
         move = max(values.items(), key=lambda item: item[1])[0]
        
         return deflatten_move(move)
-
-
-if __name__ == "__main__":
-    simulations = 10
-    game = Game(Board())
-    mcts = MCTS(game, Player.WHITE, max_depth=50)
-    import time
-    tick = time.time()
-    start, end = mcts.search(simulations)
-    tock = time.time()
-    print("%s -> %s _  %d simulations in %.2fs" %
-          (start, end, simulations, tock - tick))
-    import resource
-    print("Consumed %sB memory" %
-          resource.getrusage(resource.RUSAGE_SELF).ru_maxrss)

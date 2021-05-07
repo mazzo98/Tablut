@@ -2,18 +2,13 @@ import argparse
 import socket
 import json
 import numpy as np
-import sys
-import threading as t
 import multiprocessing as mp
 import time
-import subprocess
-import io
+
 from mcts.mcts import MCTS
 from tablut.game import Game, Player
 from tablut.rules.ashton import Board
-from tablut.player import RandomPlayer
 from copy import deepcopy
-import pprint
 
 
 class BaseClient(object):
