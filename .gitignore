@@ -1,7 +1,7 @@
 ./*/.venv/
 ./*/__pycache__
 ./*/.vscode/
-Tablut-Player/tablut_java/logs/
+Tablut-Player/tablut_Java/logs/
 Tablut-Player/garbage/
 Tablut-MCTS/build
 Tablut-MCTS/dist
