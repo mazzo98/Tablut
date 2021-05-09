@@ -32,3 +32,64 @@ int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king)
     }
     return 0;
 }
+/*
+* find all legal possible moves for all pawns? di sicuro per i bianchi
+*/
+Bitboard findAllForAll(Board from)
+{
+    return Not(Or(Or(Or(from.white, from.castle), from.citadel), from.black));
+}
+/*
+* find all legal possible moves for one pawn vertically 
+*/
+Bitboard findColForOne(Bitboard from, int col)
+{
+    Bitboard empty;
+    empty.bb[0] = 0;
+    empty.bb[1] = 0;
+    empty.bb[2] = 0;
+
+    Bitboard newBit;
+    newBit.bb[0] = 1 << INT_SIZE - 1;
+    newBit.bb[1] = 0;
+    newBit.bb[2] = 0;
+    newBit = Or(empty, rightShift(newBit, col));
+    for (int i = 0; i < WIDTH; i++)
+    {
+        newBit = Or(newBit, rightShift(newBit, WIDTH));
+    }
+    return newBit;
+}
+/*
+* find all legal possible moves for one pawn horizontally 
+*/
+Bitboard findRowForOne(Bitboard from, int row)
+{
+    Bitboard empty;
+    empty.bb[0] = 0;
+    empty.bb[1] = 0;
+    empty.bb[2] = 0;
+
+    Bitboard newBit;
+    newBit.bb[0] = 1 << INT_SIZE - 1;
+    newBit.bb[1] = 0;
+    newBit.bb[2] = 0;
+
+    for (int i = 0; i < row; i++)
+    {
+        newBit = Or(empty, rightShift(newBit, WIDTH));
+    }
+    for (int i = 0; i < WIDTH - 1; i++)
+    {
+        newBit = Or(newBit, rightShift(newBit, 1));
+    }
+    return newBit;
+}
+/*
+* find all legal possible moves for one pawn hortogonally 
+*/
+Bitboard findAllForOne(Bitboard from, int row, int col)
+{
+    Bitboard final = Or(findColForOne(from, col), findRowForOne(from, row));
+    return And(from, final);
+}

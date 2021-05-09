@@ -180,6 +180,7 @@ Bitboard setBitboard(uint32_t first, uint32_t second, uint32_t third)
     res.bb[0] = first;
     res.bb[1] = second;
     res.bb[2] = third;
+    //printLikeBoard(res, WIDTH);
     return res;
 }
 /*
