@@ -1,5 +1,6 @@
-#include "List.h"
+#include "ListMoves.h"
 #include "Board.h"
+
 
 int main(int argc, char *argv[])
 {
@@ -143,14 +144,16 @@ int main(int argc, char *argv[])
     // Bitboard finale = Or(newBit1, newBit);
     // //printLikeBoard(finale, WIDTH);
     // printLikeBoard(And(finale, a4), WIDTH);
-
-    Bitboard all = findAllForAll(b1);
-    Bitboard allOne = findAllForOne(all, 4, 6);
+    node_t* moves = findPossibleMoves(b1, WHITE);
+    Bitboard all = findAllForAll(b1, WHITE);
+    Bitboard allOne = findAllForOne(all, 4, 3);
+    printList(moves);
     printLikeBoard(all, WIDTH);
     printLikeBoard(allOne, WIDTH);
     // int couple[2];
     // int *moves = malloc(((WIDTH - 1) * 2) * sizeof(couple));
 
+/*
     //mosse in alto
     for (int i = 4 - 1; i >= 0; i--)
     {
@@ -191,4 +194,5 @@ int main(int argc, char *argv[])
         else
             break;
     }
+*/
 }

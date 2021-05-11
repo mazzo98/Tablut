@@ -2,7 +2,10 @@
 #define BOARD_H
 
 #include "Bitboard.h"
-#include "List.h"
+#include "ListMoves.h"
+
+#define WHITE 0
+#define BLACK 1
 
 //ashton tablut values to initialize the pawns and the citadels, escapes and castle
 //same as the black init position
@@ -38,18 +41,22 @@ typedef struct
 
 } Board;
 
+node_t* findPossibleMoves(Board from, uint8_t player);
+
 int winning_condition(Bitboard kingB);
 
 int lose_condition(Bitboard kingB);
 
-int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king);
+//int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king);
 
-Bitboard findAllForAll(Board from);
+Bitboard findAllForAll(Board from, uint8_t player);
 
 Bitboard findColForOne(Bitboard from, int col);
 
 Bitboard findRowForOne(Bitboard from, int row);
 
 Bitboard findAllForOne(Bitboard from, int row, int col);
+
+node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col);
 
 #endif
