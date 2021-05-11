@@ -1,13 +1,11 @@
-#include "Bitboard.h"
-#include "List.h"
 #include "Board.h"
 
 /*
 * if king is on escape tile then you win (1:win)
 */
-int winning_condition(Bitboard kingB, Bitboard escapeB)
+int winning_condition(Bitboard kingB)
 {
-    Bitboard res = And(kingB, escapeB);
+    Bitboard res = And(kingB, ESCAPE);
     //printLikeBoard(res, WIDTH);
     return !allZero(res);
 }
@@ -37,7 +35,7 @@ int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king)
 */
 Bitboard findAllForAll(Board from)
 {
-    return Not(Or(Or(Or(from.white, from.castle), from.citadel), from.black));
+    return Not(Or(Or(Or(from.white, CASTLE), CITADEL), from.black));
 }
 /*
 * find all legal possible moves for one pawn vertically 

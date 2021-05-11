@@ -1,14 +1,17 @@
+#ifndef BITBOARD_H
+#define BITBOARD_H
+
 #include <stdint.h>
 #include <stdio.h>
 
-#define INT_SIZE (8 * sizeof(uint32_t))
-#define WIDTH 9
-#define CORRECT_SHIFT 32767
+#define INT_SIZE        (8 * sizeof(uint32_t))
+#define WIDTH           9
+#define CORRECT_SHIFT   0xFFFF8000
 
 typedef struct
 {
     uint32_t bb[3];
-
+    
 } Bitboard;
 
 void showBits(uint32_t x);
@@ -38,3 +41,5 @@ int getCellState(Bitboard from, int row, int col);
 int countBitSet(Bitboard from);
 
 int allZero(Bitboard from);
+
+#endif

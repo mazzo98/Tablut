@@ -17,4 +17,4 @@ main: Bitboard.o List.o Board.o main.c
 	gcc -o main main.o Bitboard.o List.o Board.o
 
 clean:
-	rm *.o
+	rm *.o *.so

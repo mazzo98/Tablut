@@ -1,5 +1,5 @@
-#include "Bitboard.h"
 #include "List.h"
+
 // This function prints contents of linked list starting from
 // the given node
 void printList(node_t *n)
