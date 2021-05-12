@@ -1,5 +1,7 @@
 #include "Board.h"
 
+int size;
+
 /*
 * if king is on escape tile then you win (1:win)
 */
@@ -38,9 +40,9 @@ int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king)
 Bitboard findAllForAll(Board from, uint8_t player)
 {
     if (player == WHITE)
-        return Not(Or(Or(Or(from.white, CASTLE), CITADEL), from.black));
+        return Not(Or(Or(Or(Or(from.white, CASTLE), CITADEL), from.black), from.king));
     else if (player == BLACK)
-        return Not(Or(Or(Or(from.black, CASTLE), CITADEL), from.black));
+        return Not(Or(Or(Or(Or(from.white, CASTLE), CITADEL), from.black), from.king));
 }
 /*
 * find all legal possible moves for one pawn vertically 
@@ -97,14 +99,14 @@ Bitboard findAllForOne(Bitboard from, int row, int col)
     return And(from, final);
 }
 
-node_t* findPossibleMoves(Board from, uint8_t player)
+Move* findPossibleMoves(Board from, uint8_t player)
 {
     node_t* moves = NULL;
     node_t* tmp;
     Bitboard all = findAllForAll(from, player);
     Bitboard p, allOne;
     if(player == WHITE){
-        p = from.white;
+        p = Or(from.white, from.king);
     } else if(player == BLACK){
         p = from.black;
     }
@@ -119,20 +121,26 @@ node_t* findPossibleMoves(Board from, uint8_t player)
         }
     }
 
-    return moves;
+    sizeList(moves);
+    Move* m = malloc(sizeof(Move) * size);
+    for(uint8_t i=0; i<size; i++){
+        m[i] = moves->move;
+        moves = moves->next;
+    }
+    return m;
 }
 
 node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
     node_t* moves = NULL;
+
     //mosse in alto
+    Move move = { .start.row = row, .start.col = col };
     for (int i = row - 1; i >= 0; i--)
     {
         int isValid = getCellState(allOne, i, col);
         if (isValid){
-            // int *move =
-            //printf("(%d, %d)\n", i, 6);
-            Move move = { .start.row = row, .start.col = col, 
-                            .end.row = i, .end.col = col };
+            move.end.row = i;
+            move.end.col = col;
             append(&moves, move);
         } else{
             break;
@@ -144,9 +152,8 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
     {
         int isValid = getCellState(allOne, i, col);
         if (isValid){
-            //printf("(%d, %d)\n", i, 6);
-            Move move = { .start.row = row, .start.col = col, 
-                            .end.row = i, .end.col = col };
+            move.end.row = i;
+            move.end.col = col;
             append(&moves, move);
         } else{
             break;
@@ -158,9 +165,8 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
     {
         int isValid = getCellState(allOne, row, j);
         if (isValid){
-            //printf("(%d, %d)\n", 4, j);
-            Move move = { .start.row = row, .start.col = col, 
-                            .end.row = row, .end.col = j };
+            move.end.row = row;
+            move.end.col = j;
             append(&moves, move);
         } else{
             break;
@@ -172,9 +178,8 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
     {
         int isValid = getCellState(allOne, row, j);
         if (isValid){
-            //printf("(%d, %d)\n", 4, j);
-            Move move = { .start.row = row, .start.col = col, 
-                            .end.row = row, .end.col = j };
+            move.end.row = row;
+            move.end.col = j;
             append(&moves, move);
         } else{
             break;
@@ -182,4 +187,17 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
     }
 
     return moves;
+}
+
+void sizeList(node_t* moves){
+    size = 0;
+    node_t* n = moves;
+    while (n != NULL){
+         size++;
+         n = n->next;
+    }
+}
+
+int getSize(){
+    return size;
 }

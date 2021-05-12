@@ -3,12 +3,31 @@ import numpy as np
 import time
 import multiprocessing
 import collections
+from tablut.types import *
 
 from tablut.rules.ashton import Board, Player
 from copy import deepcopy
+from ctypes import *
+from bitstring import BitArray
 
 BOARD_SIDE = 9
 BOARD_SIZE = BOARD_SIDE * BOARD_SIDE
+
+class Bitboard(Structure):
+    _fields_ = [("bb", c_uint32 * 3)]
+
+class Board(Structure):
+    _fields_ = [ ("black", Bitboard), 
+                 ("white", Bitboard), 
+                 ("king", Bitboard)]
+
+class Position(Structure):
+    _fields_ = [("row", c_uint8), 
+                ("col", c_uint8) ]
+
+class Move(Structure):
+    _fields_ = [("start", Position), 
+                ("end", Position) ]
 
 def flatten_move(start: tuple, end: tuple) -> int:
     flattened_start = (start[0] * BOARD_SIDE) + start[1]
@@ -28,6 +47,43 @@ def deflatten_move(move: int) -> tuple:
     start = divmod(start, BOARD_SIDE)
     end = divmod(end, BOARD_SIDE)
     return start, end
+
+values = [0 for x in range(96)]
+ROW = 9
+COL = 9
+WIDTH = 9
+
+# lista composta da whitelist, blacklist, kinglist
+def convert_board_to_c(board):
+    lists = [BitArray(values) for i in range(3)]
+    for row in range(ROW):
+        for col in range(COL):
+            val = board[row][col]
+            index = row*WIDTH+col
+            if(val == 2):
+                lists[0].invert(index)
+            elif(val == -2 or val == -2.5):
+                lists[1].invert(index)
+            elif(val == 1.7 or val == 1):
+                lists[2].invert(index)
+    tmp = list()
+    for part in lists[0].cut(32):
+        tmp.append(part.uint)
+    white = Bitboard((tmp[0], tmp[1], tmp[2]))
+
+    tmp = list()
+    for part in lists[1].cut(32):
+        tmp.append(part.uint)
+    black = Bitboard((tmp[0], tmp[1], tmp[2]))
+
+    tmp = list()
+    for part in lists[2].cut(32):
+        tmp.append(part.uint)
+    king = Bitboard((tmp[0], tmp[1], tmp[2]))
+
+    board = Board(black, white, king)
+
+    return board
 
 
 class SearchWorker (multiprocessing.Process):
@@ -92,9 +148,24 @@ class Node(object):
         self.children = {}  # Dict[move, Node instance]
 
         # search legal moves starting from the current state
-        self.legal_moves = [
-            flatten_move(*x) for x in self.possible_moves()
-            if game.board.is_legal(game.turn, *x)[0]]
+        #self.legal_moves = [
+        #    flatten_move(*x) for x in self.possible_moves()
+        #    if game.board.is_legal(game.turn, *x)[0]]
+        
+        #print("Mosse vecchie ")
+        #print(len(self.legal_moves))
+        #print(self.legal_moves)
+        lib = CDLL("/home/mattia/Desktop/Tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
+        baseAdress = lib.findPossibleMoves(convert_board_to_c(game.board.board), 0 if game.turn is Player.WHITE else 1)
+        size = lib.getSize()
+        newpnt = cast(baseAdress, POINTER(Move))
+        tmp = np.ctypeslib.as_array(newpnt, (size,))
+        self.legal_moves = []
+        for m in tmp:
+            self.legal_moves.append(flatten_move(m[0], m[1]))
+        
+        #self.moves = [ flatten_move(*x) for x in ]
+
         self._number_visits = 0
 
         # if no moves can be performed the current player loses!

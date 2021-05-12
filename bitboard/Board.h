@@ -41,7 +41,7 @@ typedef struct
 
 } Board;
 
-node_t* findPossibleMoves(Board from, uint8_t player);
+Move* findPossibleMoves(Board from, uint8_t player);
 
 int winning_condition(Bitboard kingB);
 
@@ -58,5 +58,7 @@ Bitboard findRowForOne(Bitboard from, int row);
 Bitboard findAllForOne(Bitboard from, int row, int col);
 
 node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col);
+
+void sizeList(node_t* moves);
 
 #endif

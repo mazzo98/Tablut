@@ -5,8 +5,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-//bisogna renderlo più snello
-//Qui adesso si potrebbe mettere la board??
 typedef struct
 {
     uint8_t row;

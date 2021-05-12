@@ -102,7 +102,10 @@ Bitboard Not(Bitboard from)
 Bitboard rightShift(Bitboard from, int shift)
 {
     Bitboard to;
-    if (shift < INT_SIZE)
+    if(shift == 0){
+        to = from;
+    } 
+    else if (shift < INT_SIZE)
     {
         int oppositeShift = INT_SIZE - shift;
         to.bb[0] = from.bb[0] >> shift;
@@ -143,7 +146,10 @@ Bitboard leftShift(Bitboard from, int shift)
     // need this because we consider just the first 81 bit out of 96
     // so we need to mask out the last 15 bits
     from.bb[2] = from.bb[2] & CORRECT_SHIFT;
-    if (shift < INT_SIZE)
+    if(shift == 0){
+        to = from;
+    } 
+    else if (shift < INT_SIZE)
     {
         int oppositeShift = INT_SIZE - shift;
         to.bb[2] = from.bb[2] << shift;
@@ -206,6 +212,7 @@ int getCellState(Bitboard from, int row, int col)
     mask.bb[2] = 0;
 
     Bitboard res = And(from, rightShift(mask, row * WIDTH + col));
+
     return res.bb[0] != 0 || res.bb[1] != 0 || res.bb[2] != 0;
 }
 /*

@@ -124,6 +124,18 @@ class Client(BaseClient):
     def close(self):
         self._sock.close()
 
+# bitboards = convert_board(java)
+# print(bitboards[1].bin)
+# print('black')
+# for part in bitboards[0].cut(32):
+# print(part.uint)
+# print('white')
+# for part in bitboards[1].cut(32):
+# print(part.uint)
+# print('king')
+# for part in bitboards[2].cut(32):
+# print(part.uint)
+
 
 TURN_MAPPING = {
     "black": Player.BLACK,
