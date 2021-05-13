@@ -4,6 +4,7 @@
 #include "Bitboard.h"
 #include "ListMoves.h"
 
+//Black lives matter
 #define WHITE 0
 #define BLACK 1
 
@@ -29,9 +30,20 @@
 #define A_ESCAPE_2 0x203
 #define A_ESCAPE_3 0x1630000
 
+#define A_CITADEL_UP       0x1C040000   
+#define A_CITADEL_DOWN     0x101C0000 
+#define A_CITADEL_RIGHT    0x10180400 
+#define A_CITADEL_LEFT_1   0X10 
+#define A_CITADEL_LEFT_2   0xC040000 
+
 static Bitboard CASTLE = { A_CASTLE_1, A_CASTLE_2, A_CASTLE_3 };
 static Bitboard CITADEL = { A_CITADEL_1, A_CITADEL_2, A_CITADEL_3 };
 static Bitboard ESCAPE = { A_ESCAPE_1, A_ESCAPE_2, A_ESCAPE_3 };
+
+static Bitboard BIT_CITADEL_UP = { A_CITADEL_UP, 0x0, 0x0 };
+static Bitboard BIT_CITADEL_DOWN = { 0x0, 0x0, A_CITADEL_DOWN };
+static Bitboard BIT_CITADEL_RIGHT = { 0x0, A_CITADEL_RIGHT, 0x0 };
+static Bitboard BIT_CITADEL_LEFT = { A_CITADEL_LEFT_1, A_CITADEL_LEFT_2, 0X0 };
 
 typedef struct
 {
@@ -59,6 +71,6 @@ Bitboard findAllForOne(Bitboard from, int row, int col);
 
 node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col);
 
-void sizeList(node_t* moves);
+int getSize();
 
 #endif

@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include "Bitboard.h"
 
-//bisogna renderlo più snello
-//Qui adesso si potrebbe mettere la board??
 typedef struct node
 {
     Bitboard black;

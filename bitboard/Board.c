@@ -99,12 +99,15 @@ Bitboard findAllForOne(Bitboard from, int row, int col)
     return And(from, final);
 }
 
+/*
+* Given a board and a player it returns an array of all possible moves
+*/
 Move* findPossibleMoves(Board from, uint8_t player)
 {
     node_t* moves = NULL;
     node_t* tmp;
     Bitboard all = findAllForAll(from, player);
-    Bitboard p, allOne;
+    Bitboard p, allOne, appoggio, all_black;
     if(player == WHITE){
         p = Or(from.white, from.king);
     } else if(player == BLACK){
@@ -114,14 +117,30 @@ Move* findPossibleMoves(Board from, uint8_t player)
     for(uint8_t i=0; i < WIDTH; i++){
         for(uint8_t y=0; y < WIDTH; y++){
             if(getCellState(p, i, y)){
-                allOne = findAllForOne(all, i, y);
-                tmp = findMovesForOne(allOne, i, y);
-                appendList(&moves, &tmp);
+                if(player == BLACK){
+                    all_black = all;
+                    if(getCellState(BIT_CITADEL_UP, i, y))
+                        all_black = Or(all, And(Xor(BIT_CITADEL_UP, from.black), BIT_CITADEL_UP));
+                    else if(getCellState(BIT_CITADEL_DOWN, i, y))
+                        all_black = Or(all, And(Xor(BIT_CITADEL_DOWN, from.black), BIT_CITADEL_DOWN));
+                    else if(getCellState(BIT_CITADEL_LEFT, i, y))
+                        all_black = Or(all, And(Xor(BIT_CITADEL_LEFT, from.black), BIT_CITADEL_LEFT));
+                    else if(getCellState(BIT_CITADEL_RIGHT, i, y))
+                        all_black = Or(all, And(Xor(BIT_CITADEL_RIGHT, from.black), BIT_CITADEL_RIGHT));
+
+                    allOne = findAllForOne(all_black, i, y);
+                    tmp = findMovesForOne(allOne, i, y);
+                    appendList(&moves, &tmp);
+                } else{
+                    allOne = findAllForOne(all, i, y);
+                    tmp = findMovesForOne(allOne, i, y);
+                    appendList(&moves, &tmp);
+                }
             }
         }
     }
 
-    sizeList(moves);
+    sizeList(moves, &size);
     Move* m = malloc(sizeof(Move) * size);
     for(uint8_t i=0; i<size; i++){
         m[i] = moves->move;
@@ -130,10 +149,13 @@ Move* findPossibleMoves(Board from, uint8_t player)
     return m;
 }
 
+/*
+* Given a bitboard it returns a list of all possible moves for the specified pawn
+*/
 node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
     node_t* moves = NULL;
 
-    //mosse in alto
+    //Up
     Move move = { .start.row = row, .start.col = col };
     for (int i = row - 1; i >= 0; i--)
     {
@@ -147,7 +169,7 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
         }
     }
 
-    //mosse in basso
+    //Down
     for (int i = row + 1; i < WIDTH; i++)
     {
         int isValid = getCellState(allOne, i, col);
@@ -160,7 +182,7 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
         }
     }
 
-    //mosse a destra
+    //Right
     for (int j = col - 1; j >= 0; j--)
     {
         int isValid = getCellState(allOne, row, j);
@@ -173,7 +195,7 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
         }
     }
 
-    //mosse a sinistra
+    //Left
     for (int j = col + 1; j < WIDTH; j++)
     {
         int isValid = getCellState(allOne, row, j);
@@ -189,15 +211,9 @@ node_t* findMovesForOne(Bitboard allOne, uint8_t row, uint8_t col){
     return moves;
 }
 
-void sizeList(node_t* moves){
-    size = 0;
-    node_t* n = moves;
-    while (n != NULL){
-         size++;
-         n = n->next;
-    }
-}
-
+/*
+* Return size of list
+*/
 int getSize(){
     return size;
 }

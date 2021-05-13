@@ -33,4 +33,6 @@ void append(node_t **head_ref, Move move);
 
 void appendList(node_t **head_ref, node_t **tail);
 
+void sizeList(node_t* moves, int* size);
+
 #endif

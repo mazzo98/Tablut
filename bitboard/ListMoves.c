@@ -1,7 +1,7 @@
 #include "ListMoves.h"
 
-// This function prints contents of linked list starting from
-// the given node
+/* This function prints contents of linked list starting from
+   the given node */
 void printList(node_t *n)
 {
     while (n != NULL)
@@ -85,22 +85,33 @@ void append(node_t **head_ref, Move move)
     return;
 }
 
+/* Append tail to head_ref */
 void appendList(node_t **head_ref, node_t **tail)
 {
-    node_t *last = *head_ref; /* used in step 5*/
+    node_t *last = *head_ref; /* used in step 2*/
 
-    /* 4. If the Linked List is empty, then make the new node as head */
+    /* 1. If the Linked List is empty, then make the new node as head */
     if (*head_ref == NULL)
     {
         *head_ref = *tail;
         return;
     }
 
-    /* 5. Else traverse till the last node */
+    /* 2. Else traverse till the last node */
     while (last->next != NULL)
         last = last->next;
 
-    /* 6. Change the next of last node */
+    /* 3. Change the next of last node */
     last->next = *tail;
     return;
+}
+
+/* Calculate list's size */
+void sizeList(node_t* moves, int* size){
+    *size = 0;
+    node_t* n = moves;
+    while (n != NULL){
+         (*size)++;
+         n = n->next;
+    }
 }

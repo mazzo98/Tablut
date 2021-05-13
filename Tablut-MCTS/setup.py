@@ -2,6 +2,6 @@ import setuptools
 
 setuptools.setup(
     name="mcts",
-    version="0.0.1",
+    version="1.0.0",
     packages=setuptools.find_packages()
 )

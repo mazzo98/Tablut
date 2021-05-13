@@ -86,18 +86,18 @@ class Game(object):
         else:
             raise TurnException("Its white player turn")
 
-    def what_if(self, start, end, player=None):
-        """
-        Return the game instance if a particular move is made but doesnt modify the actual instance. 
-        The right player is automatically used if not provided
-        """
-        if player is None:
-            player = self.turn
+    # def what_if(self, start, end, player=None):
+    #     """
+    #     Return the game instance if a particular move is made but doesnt modify the actual instance. 
+    #     The right player is automatically used if not provided
+    #     """
+    #     if player is None:
+    #         player = self.turn
 
-        cpy = deepcopy(self)
-        if cpy.turn is Player.WHITE:
-            cpy.white_move(start, end)
-        else:
-            cpy.black_move(start, end)
+    #     cpy = deepcopy(self)
+    #     if cpy.turn is Player.WHITE:
+    #         cpy.white_move(start, end)
+    #     else:
+    #         cpy.black_move(start, end)
 
-        return cpy
+    #     return cpy

@@ -124,18 +124,6 @@ class Client(BaseClient):
     def close(self):
         self._sock.close()
 
-# bitboards = convert_board(java)
-# print(bitboards[1].bin)
-# print('black')
-# for part in bitboards[0].cut(32):
-# print(part.uint)
-# print('white')
-# for part in bitboards[1].cut(32):
-# print(part.uint)
-# print('king')
-# for part in bitboards[2].cut(32):
-# print(part.uint)
-
 
 TURN_MAPPING = {
     "black": Player.BLACK,
@@ -148,8 +136,8 @@ PORTS = {
 }
 
 PLAYER_NAMES = {
-    "white": "WANDA",
-    "black": "COSMO"
+    "white": "JERRY",
+    "black": "TOM"
 }
 
 WHITE_DEFAULT_MAX_DEPTH = 23
@@ -185,7 +173,7 @@ if __name__ == "__main__":
         max_depth = args.max_depth
     C = args.C
     workers = args.workers
-    timeout = int(args.timeout) - 5
+    timeout = int(args.timeout) - 3
 
     c1 = Client(args.ip, PORTS[player_arg], player_arg)
     c1.send_name(PLAYER_NAMES[player_arg])

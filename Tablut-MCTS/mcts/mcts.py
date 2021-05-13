@@ -3,15 +3,17 @@ import numpy as np
 import time
 import multiprocessing
 import collections
-from tablut.types import *
 
 from tablut.rules.ashton import Board, Player
 from copy import deepcopy
 from ctypes import *
 from bitstring import BitArray
 
-BOARD_SIDE = 9
+BOARD_SIDE, ROW, COL, WIDTH = 9, 9, 9, 9
 BOARD_SIZE = BOARD_SIDE * BOARD_SIDE
+
+values = [0 for x in range(96)]
+lib = CDLL("/home/mattia/Desktop/Tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
 
 class Bitboard(Structure):
     _fields_ = [("bb", c_uint32 * 3)]
@@ -48,13 +50,10 @@ def deflatten_move(move: int) -> tuple:
     end = divmod(end, BOARD_SIDE)
     return start, end
 
-values = [0 for x in range(96)]
-ROW = 9
-COL = 9
-WIDTH = 9
-
-# lista composta da whitelist, blacklist, kinglist
 def convert_board_to_c(board):
+    """
+    Convert python board to c Board
+    """
     lists = [BitArray(values) for i in range(3)]
     for row in range(ROW):
         for col in range(COL):
@@ -87,6 +86,9 @@ def convert_board_to_c(board):
 
 
 class SearchWorker (multiprocessing.Process):
+    """
+    Class to perform tree exploration using multithread
+    """
     def __init__(self, root_state, max_time, queue, max_depth, number):
         multiprocessing.Process.__init__(self)
         self._root_state = root_state
@@ -152,10 +154,6 @@ class Node(object):
         #    flatten_move(*x) for x in self.possible_moves()
         #    if game.board.is_legal(game.turn, *x)[0]]
         
-        #print("Mosse vecchie ")
-        #print(len(self.legal_moves))
-        #print(self.legal_moves)
-        lib = CDLL("/home/mattia/Desktop/Tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
         baseAdress = lib.findPossibleMoves(convert_board_to_c(game.board.board), 0 if game.turn is Player.WHITE else 1)
         size = lib.getSize()
         newpnt = cast(baseAdress, POINTER(Move))
@@ -163,8 +161,6 @@ class Node(object):
         self.legal_moves = []
         for m in tmp:
             self.legal_moves.append(flatten_move(m[0], m[1]))
-        
-        #self.moves = [ flatten_move(*x) for x in ]
 
         self._number_visits = 0
 
