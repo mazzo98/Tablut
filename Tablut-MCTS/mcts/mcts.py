@@ -12,9 +12,6 @@ from bitstring import BitArray
 BOARD_SIDE, ROW, COL, WIDTH = 9, 9, 9, 9
 BOARD_SIZE = BOARD_SIDE * BOARD_SIDE
 
-values = [0 for x in range(96)]
-lib = CDLL("/home/mattia/Desktop/Tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
-
 class Bitboard(Structure):
     _fields_ = [("bb", c_uint32 * 3)]
 
@@ -30,6 +27,13 @@ class Position(Structure):
 class Move(Structure):
     _fields_ = [("start", Position), 
                 ("end", Position) ]
+
+new_time = 0
+new_iterations = 0
+values = [0 for x in range(96)]
+lib = CDLL("/home/mattia/Desktop/Tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
+lib.findPossibleMoves.argtypes = [ Board, c_uint8 ]
+lib.findPossibleMoves.restype = POINTER(Move)
 
 def flatten_move(start: tuple, end: tuple) -> int:
     flattened_start = (start[0] * BOARD_SIDE) + start[1]
@@ -54,7 +58,7 @@ def convert_board_to_c(board):
     """
     Convert python board to c Board
     """
-    lists = [BitArray(values) for i in range(3)]
+    lists = [ BitArray(values) for i in range(3) ]
     for row in range(ROW):
         for col in range(COL):
             val = board[row][col]
@@ -65,24 +69,17 @@ def convert_board_to_c(board):
                 lists[1].invert(index)
             elif(val == 1.7 or val == 1):
                 lists[2].invert(index)
-    tmp = list()
-    for part in lists[0].cut(32):
-        tmp.append(part.uint)
+
+    tmp = [ part.uint for part in lists[0].cut(32) ]
     white = Bitboard((tmp[0], tmp[1], tmp[2]))
 
-    tmp = list()
-    for part in lists[1].cut(32):
-        tmp.append(part.uint)
+    tmp = [ part.uint for part in lists[1].cut(32) ]
     black = Bitboard((tmp[0], tmp[1], tmp[2]))
 
-    tmp = list()
-    for part in lists[2].cut(32):
-        tmp.append(part.uint)
+    tmp = [ part.uint for part in lists[2].cut(32) ]
     king = Bitboard((tmp[0], tmp[1], tmp[2]))
 
-    board = Board(black, white, king)
-
-    return board
+    return Board(black, white, king)
 
 
 class SearchWorker (multiprocessing.Process):
@@ -117,18 +114,20 @@ class SearchWorker (multiprocessing.Process):
             self.simulations += 1
 
         print("MCTS %d performed %d simulations" % (self._number, self.simulations))
+        print("Average new: %d", new_time/new_iterations)
 
         # search for best move
-        for move, node in self._root_state.children.items():
-            print("Move %s -> %s, %s/%s" %
-                  (*deflatten_move(move), node.total_value, node.number_visits))
+        # for move, node in self._root_state.children.items():
+        #     print("Move %s -> %s, %s/%s" %
+        #           (*deflatten_move(move), node.total_value, node.number_visits))
 
-        move, node = max(self._root_state.children.items(),
-                         key=lambda item: (item[1].total_value / item[1].number_visits))
+        # move, node = max(self._root_state.children.items(),
+        #                 key=lambda item: (item[1].total_value / item[1].number_visits))
 
-        values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root_state.children.items()])
+        #values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root_state.children.items()])
 
-        self._queue.put(values)
+        #self._queue.put(values)
+        self._queue.put(self._root_state.children)
 
     def get_result(self):
         return self._queue.get()
@@ -149,24 +148,23 @@ class Node(object):
         self.parent = parent
         self.children = {}  # Dict[move, Node instance]
 
-        # search legal moves starting from the current state
-        #self.legal_moves = [
-        #    flatten_move(*x) for x in self.possible_moves()
-        #    if game.board.is_legal(game.turn, *x)[0]]
-        
+        global new_time
+        global new_iterations
+
+        tmp_time = time.time()
         baseAdress = lib.findPossibleMoves(convert_board_to_c(game.board.board), 0 if game.turn is Player.WHITE else 1)
         size = lib.getSize()
-        newpnt = cast(baseAdress, POINTER(Move))
-        tmp = np.ctypeslib.as_array(newpnt, (size,))
-        self.legal_moves = []
-        for m in tmp:
-            self.legal_moves.append(flatten_move(m[0], m[1]))
+        self.legal_moves = [ flatten_move(*x) for x in np.ctypeslib.as_array(baseAdress, (size,)) ]
+        lib.freeMemory()
+
+        new_time += (time.time() - tmp_time)
+        new_iterations += 1
 
         self._number_visits = 0
 
         # if no moves can be performed the current player loses!
         if len(self.legal_moves) == 0:
-            self.game.ended = True
+            self.game.end = True
             self._number_visits = self._number_visits + 1
             self.total_value = 0 if game.turn is Player.WHITE else 1
         else:
@@ -174,47 +172,6 @@ class Node(object):
                 [len(self.legal_moves)], dtype=np.float32)
             self.child_number_visits = np.zeros(
                 [len(self.legal_moves)], dtype=np.float32)
-
-    def _possible_starting_positions(self):
-        """
-        Compute the possible starting positions for the current player
-        """
-        if self.game.turn is Player.WHITE:
-            positions = (self.game.board.board == 2) | (
-                self.game.board.board == 1) | (self.game.board.board == 1.7)
-        else:
-            positions = (self.game.board.board == -2.5) | (
-                self.game.board.board == -2)
-        return np.transpose(np.where(positions))
-
-    def _possible_ending_positions(self):
-        """
-        Compute the possible starting positions for the current player
-        """
-        positions = self.game.board.board == 0
-        if self.game.turn is Player.WHITE:
-            positions = positions | (self.game.board.board == 0.7) | (
-                self.game.board.board == 0.3)
-        else:
-            positions = positions | (self.game.board.board == -0.5)
-        return np.transpose(np.where(positions))
-
-    def _is_orthogonal(self, start, end):
-        """
-        Check if the move is orthogonal
-        """
-        return start[0] == end[0] or start[1] == end[1]
-
-    def possible_moves(self):
-        """
-        Computes all the possible moves given the current game state
-        """
-        starts = [tuple(x) for x in self._possible_starting_positions()]
-        ends = [tuple(x) for x in self._possible_ending_positions()]
-
-        moves = [(s, e)
-                 for s in starts for e in ends if self._is_orthogonal(s, e)]
-        return moves
 
     @property
     def number_visits(self):
@@ -296,11 +253,11 @@ class Node(object):
         Add a child node
         """
         new_game = deepcopy(self.game)
-        # skip legality check when making move as we only try legal moves
+        
         if new_game.turn is Player.WHITE:
-            new_game.white_move(*deflatten_move(move), known_legal=True)
+            new_game.white_move(*deflatten_move(move))
         else:
-            new_game.black_move(*deflatten_move(move), known_legal=True)
+            new_game.black_move(*deflatten_move(move))
 
         rm = self.remaining_moves - 1
         self.children[move] = Node(
@@ -378,8 +335,29 @@ class MCTS(object):
     def __init__(self, game_state, playing_as, max_depth=20, C=np.sqrt(2), parallel=multiprocessing.cpu_count()):
         self.max_depth = max_depth
         self.parallel_count = parallel
+        self.C = C
+        self.playing_as = playing_as
         self._root = Root(game_state, playing_as,
                           remaining_moves=max_depth, C=C)
+
+    def new_root(self, game):
+        """
+        Set as root the node obtained by applying the specified move in the current state
+        """
+        #m = flatten_move(start, end)
+        for key, value in self._root.children.items():
+            compare = value.game.board.board == game.board.board
+            if compare.all():
+                print(key ,'->', value)
+                self._root = value
+        else:
+            # move is not available among root children so we obtain it manually
+            # if self.game.turn is Player.WHITE:
+            #     self.game.white_move(start, end)
+            # else:
+            #     self.game.black_move(start, end)
+            self.game = game
+            self._root = Root(self.game, self.playing_as, remaining_moves=self.max_depth, C=self.C)
 
     def search(self, max_time):
         """
@@ -403,10 +381,15 @@ class MCTS(object):
             results.append(w.get_result())
             w.join()
 
-        values = collections.defaultdict(float)  
         for r in results:
-            for (move, value) in r.items():
-                values[move] += value
+            self._root.children = {**self._root.children , **r}
+
+        # values = collections.defaultdict(float)  
+        # for r in results:
+        #     for (move, value) in r.items():
+        #         values[move] += value
+
+        values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root.children.items()])
         
         move = max(values.items(), key=lambda item: item[1])[0]
        

@@ -194,24 +194,24 @@ Bitboard setBitboard(uint32_t first, uint32_t second, uint32_t third)
 */
 Bitboard setCellState(Bitboard from, int row, int col)
 {
-    Bitboard newBit;
-    newBit.bb[0] = 1 << INT_SIZE - 1;
-    newBit.bb[1] = 0;
-    newBit.bb[2] = 0;
+    // Bitboard newBit;
+    // newBit.bb[0] = 1 << INT_SIZE - 1;
+    // newBit.bb[1] = 0;
+    // newBit.bb[2] = 0;
 
-    return Or(from, rightShift(newBit, row * WIDTH + col));
+    return Or(from, rightShift(NEW_BIT, row * WIDTH + col));
 }
 /*
 * gets the state of a given row,col position
 */
 int getCellState(Bitboard from, int row, int col)
 {
-    Bitboard mask;
-    mask.bb[0] = 1 << INT_SIZE - 1;
-    mask.bb[1] = 0;
-    mask.bb[2] = 0;
+    // Bitboard mask;
+    // mask.bb[0] = 1 << INT_SIZE - 1;
+    // mask.bb[1] = 0;
+    // mask.bb[2] = 0;
 
-    Bitboard res = And(from, rightShift(mask, row * WIDTH + col));
+    Bitboard res = And(from, rightShift(MASK, row * WIDTH + col));
 
     return res.bb[0] != 0 || res.bb[1] != 0 || res.bb[2] != 0;
 }

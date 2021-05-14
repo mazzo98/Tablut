@@ -1,20 +1,14 @@
-all: Bitboard.o ListMoves.o Board.o main clean
+all: Bitboard.o ListMoves.o Board.o clean
 	
 Bitboard.o: Bitboard.c
-	gcc -c -fPIC Bitboard.c
-	gcc -shared Bitboard.o -o _bitboard.so
+	gcc -c -O3 -fPIC Bitboard.c
 
 ListMoves.o: ListMoves.c
-	gcc -c -fPIC ListMoves.c
-	gcc -shared ListMoves.o -o _listMoves.so
+	gcc -c -O3 -fPIC ListMoves.c
 	
 Board.o: Board.c
-	gcc -c -fPIC Board.c
+	gcc -c -O3 -fPIC Board.c
 	gcc -shared Board.o -o _board.so ListMoves.o Bitboard.o
-	
-main: Bitboard.o Board.o ListMoves.o main.c
-	gcc -c -fPIC main.c
-	gcc -o main main.o Bitboard.o ListMoves.o Board.o
 
 clean:
 	rm *.o

@@ -14,6 +14,10 @@ typedef struct
     
 } Bitboard;
 
+static Bitboard MASK = { 1 << INT_SIZE - 1, 0x0, 0x0 };
+static Bitboard NEW_BIT = { 1 << INT_SIZE - 1, 0x0, 0x0 };
+static Bitboard EMPTY = { 0x0, 0x0, 0x0 };
+
 void showBits(uint32_t x);
 
 void printBitboard(Bitboard b);

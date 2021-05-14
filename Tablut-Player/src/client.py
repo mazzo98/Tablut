@@ -141,6 +141,7 @@ PLAYER_NAMES = {
 }
 
 WHITE_DEFAULT_MAX_DEPTH = 23
+BLACK_DEFAULT_MAX_DEPTH = 35
 
 
 def setup_args():
@@ -168,18 +169,20 @@ if __name__ == "__main__":
     OUR_PLAYER = TURN_MAPPING[player_arg]
     # Fixing the parameters
     if player_arg == "black" and args.max_depth == WHITE_DEFAULT_MAX_DEPTH:
-        max_depth = 35  # Default for black
+        max_depth = BLACK_DEFAULT_MAX_DEPTH
     else:
         max_depth = args.max_depth
     C = args.C
     workers = args.workers
-    timeout = int(args.timeout) - 3
+    timeout = int(args.timeout) - 1
 
     c1 = Client(args.ip, PORTS[player_arg], player_arg)
     c1.send_name(PLAYER_NAMES[player_arg])
 
     board = Board()
     game = Game(board)
+    mcts = MCTS(deepcopy(game), OUR_PLAYER,
+                    max_depth=max_depth, C=C, parallel=workers)
     # Main game loop
     try:
         while not game.ended:
@@ -187,13 +190,17 @@ if __name__ == "__main__":
             while state is None:
                 state, turn = c1.receive_state()
                 game.board.board = state
+                if mcts is not None:
+                    mcts.new_root(game)
                 if turn not in ["black", "white"]:
                     raise GameEndedException
                 game.turn = TURN_MAPPING[turn]
                 print(state, turn)
             if game.turn == OUR_PLAYER:
-                mcts = MCTS(deepcopy(game), OUR_PLAYER,
-                            max_depth=max_depth, C=C, parallel=workers)
+                if mcts is not None:
+                    mcts.new_root(game)
+                # mcts = MCTS(deepcopy(game), OUR_PLAYER,
+                #             max_depth=max_depth, C=C, parallel=workers)
                 start, end = mcts.search(timeout)
                 print(start, end)
                 c1.send_move(start, end)

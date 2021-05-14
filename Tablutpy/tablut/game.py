@@ -26,10 +26,11 @@ class Game(object):
     def __init__(self, board):
         self.board = board
         self.turn = Player.WHITE
+        self.end = False
 
     @property
     def ended(self):
-        return self.board.winning_condition() or self.board.lose_condition() or self.board.draw_condition()
+        return self.board.winning_condition() or self.board.lose_condition() or self.board.draw_condition() or self.end
 
     @property
     def winner(self):
@@ -40,14 +41,13 @@ class Game(object):
         else:
             return None
 
-    def white_move(self, start, end, known_legal=False):
+    def white_move(self, start, end):
         """
         Make the white move
         """
         if self.turn == Player.WHITE and not self.ended:
             try:
-                self.board.step(Player.WHITE, start, end,
-                                check_legal=known_legal)
+                self.board.step(start, end)
                 self.turn = Player.BLACK
             except WinException:
                 # white won
@@ -63,14 +63,13 @@ class Game(object):
         else:
             raise TurnException("Its black player turn")
 
-    def black_move(self, start, end, known_legal=False):
+    def black_move(self, start, end):
         """
         Make the black move
         """
         if self.turn == Player.BLACK:
             try:
-                self.board.step(Player.BLACK, start, end,
-                                check_legal=known_legal)
+                self.board.step(start, end)
                 self.turn = Player.WHITE
             except WinException:
                 # white won (shouldn't happen here...)
@@ -85,19 +84,3 @@ class Game(object):
                 raise ValueError("Black move illegal:%s " % str(e))
         else:
             raise TurnException("Its white player turn")
-
-    # def what_if(self, start, end, player=None):
-    #     """
-    #     Return the game instance if a particular move is made but doesnt modify the actual instance. 
-    #     The right player is automatically used if not provided
-    #     """
-    #     if player is None:
-    #         player = self.turn
-
-    #     cpy = deepcopy(self)
-    #     if cpy.turn is Player.WHITE:
-    #         cpy.white_move(start, end)
-    #     else:
-    #         cpy.black_move(start, end)
-
-    #     return cpy

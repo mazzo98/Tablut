@@ -77,50 +77,36 @@ class BaseBoard(object):
                 grid[row_i][col_i] = tile
         return grid
 
-    def is_legal(self, player, start, end):
-        """
-        Return if move from start to end is legal
-        """
-        raise NotImplementedError
-
-    def step(self, player, start, end, check_legal=True):
+    def step(self, start, end):
         """
         Perform a move and update the board status if a move is legal
         Returns the number of checkers captured
         """
         captures = 0
-        #print("STEP {} {}".format(start, end))
-        # if check_legal:
-        #     legal_move, message = self.is_legal(player, start, end)
-        # else:
-        legal_move = True
 
-        if legal_move:
-            # perform move
-            # This removes the tile: we just keep the int
-            piece = int(self.board[start[0]][start[1]])
-            # This removes the piece: we just keep the decimal part
-            self.board[start[0]][start[1]] = self.board[start[0]
-                                                        ][start[1]] - int(self.board[start[0]][start[1]])  # The modulo %1 doesn't work: Python always returns positives
-            self.board[end[0]][end[1]] = self.board[end[0]][end[1]
-                                                            ] + piece  # This adds the piece to the new tile
+        # perform move
+        # This removes the tile: we just keep the int
+        piece = int(self.board[start[0]][start[1]])
+        # This removes the piece: we just keep the decimal part
+        self.board[start[0]][start[1]] = self.board[start[0]
+                                                    ][start[1]] - int(self.board[start[0]][start[1]])  # The modulo %1 doesn't work: Python always returns positives
+        self.board[end[0]][end[1]] = self.board[end[0]][end[1]
+                                                        ] + piece  # This adds the piece to the new tile
 
-            # remove captured pieces
-            captures = self.apply_captures(end)
+        # remove captured pieces
+        captures = self.apply_captures(end)
 
-            # check for winning condition
-            if self.winning_condition():
-                raise WinException
-            elif self.lose_condition():
-                raise LoseException
-            elif self.draw_condition():
-                raise DrawException
-            else:
-                # store move in board history
-                self.board_history.append(self.pack(self.board))
-                return captures
+        # check for winning condition
+        if self.winning_condition():
+            raise WinException
+        elif self.lose_condition():
+            raise LoseException
+        elif self.draw_condition():
+            raise DrawException
         else:
-            raise ValueError(message)
+            # store move in board history
+            self.board_history.append(self.pack(self.board))
+            return captures
 
     def apply_captures(self, changed_position):
         """

@@ -69,76 +69,6 @@ class Board(board.BaseBoard):
 
         return start, end
 
-    def is_legal(self, player, start, end):
-        """
-        Check if move is legal according to ashton rules
-        """
-        st = self.board[start[0]][start[1]]
-        et = self.board[end[0]][end[1]]
-
-        # cant land on corners
-        # if end in [(0, 0), (0, 8), (8, 0), (8, 8)]:
-        #    return False, "Cant end on tile corners"
-
-        # start tile cant be empty
-        if -1 < st < 1:
-            return False, "Start tile is empty"
-
-        # start tile must contain my pieces
-        if (player is Player.BLACK and st > 0 or
-                (player is Player.WHITE and st < 0)):
-            return False, "Cant move other player pieces"
-
-        # start and end cannot be the same
-        if start[0] == end[0] and start[1] == end[1]:
-            return False, "End needs to be different than start"
-
-        # Move need to be orthogonal
-        if start[0] == end[0]:
-            mov_direction = 1
-        elif start[1] == end[1]:
-            mov_direction = 0
-        else:
-            return False, "Moves need to be orthogonal"
-
-        # End tile cannot be already occupied
-        if not -1 < et < 1:
-            return False, "Cannot go into already occupied tile"
-
-        # End tile cannot be the castle
-        if et == 0.7:
-            return False, "Cannot end in the castle"
-
-        # End tile cannot be a camp unless a black soldier is moving inside its starting camp
-        # and never left it
-        if et == -0.5 and not (st - int(st)) == -0.5:
-            return False, "Cannot end in camp"
-
-        # Escape tile can be reached only by the king
-        # if et == 0.3 and not int(st) == 1:
-        #    return False, "Only king can go in escape"
-
-        # Check for obastacles in movement.
-        # final cell already considered
-        delta = end[mov_direction] - start[mov_direction]
-        if abs(delta)-1 > 0:
-            sum = 0
-            i = start[mov_direction]
-            while i != end[mov_direction]:
-                # This is firstly needed to skip the first cell (containing our piece), then to loop
-                if delta < 0:
-                    i = i-1
-                else:
-                    i = i+1
-                if mov_direction == 0:
-                    sum = sum + abs(self.board[i][start[1]])
-                else:
-                    sum = sum + abs(self.board[start[0]][i])
-            if not sum == 0:
-                return False, "Cannot pass over obstacle: %s" % sum
-
-        return True, ""
-
     def apply_captures(self, changed_position):
         """
         Apply orthogonal captures for soldiers and
@@ -202,6 +132,27 @@ class Board(board.BaseBoard):
                 pass  # If the position doesn't exist, let's skip it!
         return sum
 
+    def _has_neighbour(self, position, enemy, direction, check_piece=True):
+        """
+        Returns if tile in specified position has a specified neighbour in the specified direction.
+        Axis can be 'left', 'right', 'up', 'down'.
+
+        if check piece is True the enemy is searched inside the neighbour tile, 
+        if false the neighbour tile type (e.g. Castle) is considered as enemy
+        """
+        try:
+            neighbour_position = self._neighbour_position(position, direction)
+            neighbour = self.board[neighbour_position[0]
+                                   ][neighbour_position[1]]
+
+            if check_piece:
+                # If they're from different "teams", the product has to be <0
+                return (self.board[position[0]][position[1]]*neighbour) < 0
+            else:
+                return neighbour in enemy
+        except (ValueError, IndexError):
+            return False
+
     def _orthogonal_capture(self, changed_position, enemy_class):
         """
         A soldier is captured if its surrounded by two other soldiers, note that the capture needs to be
@@ -257,38 +208,6 @@ class Board(board.BaseBoard):
                         pass
         return captured
 
-    def _adjacent_to(self, position, cell, is_piece=False):
-        """
-        Check if tile in position is adjacent to a particular tile is is_piece is False or
-        adjacent to a particular checker if is_piece is True.
-
-        cell is a list.
-        """
-        return self._has_neighbour(position, cell, "right", check_piece=is_piece) or \
-            self._has_neighbour(position, cell, "down", check_piece=is_piece) or \
-            self._has_neighbour(position, cell, "left", check_piece=is_piece) or \
-            self._has_neighbour(position, cell, "up", check_piece=is_piece)
-
-    def _has_neighbour(self, position, enemy, direction, check_piece=True):
-        """
-        Returns if tile in specified position has a specified neighbour in the specified direction.
-        Axis can be 'left', 'right', 'up', 'down'.
-
-        if check piece is True the enemy is searched inside the neighbour tile, 
-        if false the neighbour tile type (e.g. Castle) is considered as enemy
-        """
-        try:
-            neighbour_position = self._neighbour_position(position, direction)
-            neighbour = self.board[neighbour_position[0]
-                                   ][neighbour_position[1]]
-
-            if check_piece:
-                # If they're from different "teams", the product has to be <0
-                return (self.board[position[0]][position[1]]*neighbour) < 0
-            else:
-                return neighbour in enemy
-        except (ValueError, IndexError):
-            return False
 
     def _neighbour_position(self, position, direction):
         """

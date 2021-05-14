@@ -145,7 +145,11 @@ int main(int argc, char *argv[])
     // //printLikeBoard(finale, WIDTH);
     // printLikeBoard(And(finale, a4), WIDTH);
     //node_t* moves = findPossibleMoves(b1, WHITE);
-    Move* m = findPossibleMoves(b1, BLACK);
+    Move* m;
+    for(int i=0; i<1000; i++){
+        m = findPossibleMoves(b1, WHITE);
+    }
+
     //Bitboard all = findAllForAll(b1, WHITE);
     //Bitboard allOne = findAllForOne(all, 4, 3);
     //printList(moves);
