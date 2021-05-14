@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import time
 import multiprocessing
@@ -28,8 +27,6 @@ class Move(Structure):
     _fields_ = [("start", Position), 
                 ("end", Position) ]
 
-new_time = 0
-new_iterations = 0
 values = [0 for x in range(96)]
 lib = CDLL("/home/mattia/Desktop/Tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
 lib.findPossibleMoves.argtypes = [ Board, c_uint8 ]
@@ -81,57 +78,6 @@ def convert_board_to_c(board):
 
     return Board(black, white, king)
 
-
-class SearchWorker (multiprocessing.Process):
-    """
-    Class to perform tree exploration using multithread
-    """
-    def __init__(self, root_state, max_time, queue, max_depth, number):
-        multiprocessing.Process.__init__(self)
-        self._root_state = root_state
-        self._max_time = max_time
-        self._needed_moves = list()
-        self._max_depth = max_depth
-        self._queue = queue
-        self._number = number
-    
-    def run(self):
-        start_t = time.time()
-        self.simulations = 0
-
-        while ((time.time() - start_t)) <= self._max_time:
-            # select leaf
-            leaf = self._root_state.select_leaf()
-            # obtain a new leaf
-            leaf = leaf.expand()
-            # save the number of moves needed to reach this leaf
-            used_moves = self._max_depth - leaf.remaining_moves
-            self._needed_moves.append(used_moves)
-            # propagate leaf result
-            leaf.backup()
-
-            # the number of simulations carried out
-            self.simulations += 1
-
-        print("MCTS %d performed %d simulations" % (self._number, self.simulations))
-        print("Average new: %d", new_time/new_iterations)
-
-        # search for best move
-        # for move, node in self._root_state.children.items():
-        #     print("Move %s -> %s, %s/%s" %
-        #           (*deflatten_move(move), node.total_value, node.number_visits))
-
-        # move, node = max(self._root_state.children.items(),
-        #                 key=lambda item: (item[1].total_value / item[1].number_visits))
-
-        #values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root_state.children.items()])
-
-        #self._queue.put(values)
-        self._queue.put(self._root_state.children)
-
-    def get_result(self):
-        return self._queue.get()
-
 class Node(object):
     """
     Based on https://www.moderndescartes.com/essays/deep_dive_mcts/
@@ -147,18 +93,14 @@ class Node(object):
 
         self.parent = parent
         self.children = {}  # Dict[move, Node instance]
+        self.legal_moves = []
 
-        global new_time
-        global new_iterations
-
-        tmp_time = time.time()
         baseAdress = lib.findPossibleMoves(convert_board_to_c(game.board.board), 0 if game.turn is Player.WHITE else 1)
         size = lib.getSize()
-        self.legal_moves = [ flatten_move(*x) for x in np.ctypeslib.as_array(baseAdress, (size,)) ]
-        lib.freeMemory()
+        if size != 0:
+            self.legal_moves = [ flatten_move(*x) for x in np.ctypeslib.as_array(baseAdress, (size,)) ]
 
-        new_time += (time.time() - tmp_time)
-        new_iterations += 1
+        lib.freeMemory()
 
         self._number_visits = 0
 
@@ -327,6 +269,57 @@ class Root(Node):
         self._total_value = value
 
 
+workers_dict = multiprocessing.Manager().dict()
+
+class SearchWorker (multiprocessing.Process):
+    """
+    Class to perform tree exploration using multithread
+    """
+    def __init__(self, root_state, max_time, queue, max_depth, number):
+        multiprocessing.Process.__init__(self)
+        self._root_state = root_state
+        self._max_time = max_time
+        self._needed_moves = list()
+        self._max_depth = max_depth
+        self._queue = queue
+        self._number = number
+    
+    def run(self):
+        start_t = time.time()
+        self.simulations = 0
+
+        while ((time.time() - start_t)) <= self._max_time:
+            # select leaf
+            leaf = self._root_state.select_leaf()
+            # obtain a new leaf
+            leaf = leaf.expand()
+            # save the number of moves needed to reach this leaf
+            used_moves = self._max_depth - leaf.remaining_moves
+            self._needed_moves.append(used_moves)
+            # propagate leaf result
+            leaf.backup()
+
+            # the number of simulations carried out
+            self.simulations += 1
+
+        print("MCTS %d performed %d simulations" % (self._number, self.simulations))
+
+        # search for best move
+        for move, node in self._root_state.children.items():
+            print("Move %s -> %s, %s/%s" %
+                  (*deflatten_move(move), node.total_value, node.number_visits))
+
+        move, node = max(self._root_state.children.items(),
+                         key=lambda item: (item[1].total_value / item[1].number_visits))
+
+        values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root_state.children.items()])
+
+        self._queue.put(values)
+
+    def get_result(self):
+        return self._queue.get()
+
+
 class MCTS(object):
     """
     Perform montecarlo tree search on the tablut game.
@@ -335,8 +328,8 @@ class MCTS(object):
     def __init__(self, game_state, playing_as, max_depth=20, C=np.sqrt(2), parallel=multiprocessing.cpu_count()):
         self.max_depth = max_depth
         self.parallel_count = parallel
-        self.C = C
         self.playing_as = playing_as
+        self.C = C
         self._root = Root(game_state, playing_as,
                           remaining_moves=max_depth, C=C)
 
@@ -347,7 +340,7 @@ class MCTS(object):
         #m = flatten_move(start, end)
         for key, value in self._root.children.items():
             compare = value.game.board.board == game.board.board
-            if compare.all():
+            if compare.all() and value.game.turn == game.turn:
                 print(key ,'->', value)
                 self._root = value
         else:
@@ -381,15 +374,10 @@ class MCTS(object):
             results.append(w.get_result())
             w.join()
 
+        values = collections.defaultdict(float)  
         for r in results:
-            self._root.children = {**self._root.children , **r}
-
-        # values = collections.defaultdict(float)  
-        # for r in results:
-        #     for (move, value) in r.items():
-        #         values[move] += value
-
-        values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root.children.items()])
+            for (move, value) in r.items():
+                values[move] += value
         
         move = max(values.items(), key=lambda item: item[1])[0]
        

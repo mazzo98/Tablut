@@ -3,7 +3,6 @@ import socket
 import json
 import numpy as np
 import multiprocessing as mp
-import time
 
 from mcts.mcts import MCTS
 from tablut.game import Game, Player
@@ -140,8 +139,8 @@ PLAYER_NAMES = {
     "black": "TOM"
 }
 
-WHITE_DEFAULT_MAX_DEPTH = 23
-BLACK_DEFAULT_MAX_DEPTH = 35
+WHITE_DEFAULT_MAX_DEPTH = 150   #23
+BLACK_DEFAULT_MAX_DEPTH = 200   #35
 
 
 def setup_args():
@@ -174,15 +173,13 @@ if __name__ == "__main__":
         max_depth = args.max_depth
     C = args.C
     workers = args.workers
-    timeout = int(args.timeout) - 1
+    timeout = int(args.timeout) - 4
 
     c1 = Client(args.ip, PORTS[player_arg], player_arg)
     c1.send_name(PLAYER_NAMES[player_arg])
 
     board = Board()
     game = Game(board)
-    mcts = MCTS(deepcopy(game), OUR_PLAYER,
-                    max_depth=max_depth, C=C, parallel=workers)
     # Main game loop
     try:
         while not game.ended:
@@ -190,17 +187,13 @@ if __name__ == "__main__":
             while state is None:
                 state, turn = c1.receive_state()
                 game.board.board = state
-                if mcts is not None:
-                    mcts.new_root(game)
                 if turn not in ["black", "white"]:
                     raise GameEndedException
                 game.turn = TURN_MAPPING[turn]
                 print(state, turn)
             if game.turn == OUR_PLAYER:
-                if mcts is not None:
-                    mcts.new_root(game)
-                # mcts = MCTS(deepcopy(game), OUR_PLAYER,
-                #             max_depth=max_depth, C=C, parallel=workers)
+                mcts = MCTS(deepcopy(game), OUR_PLAYER,
+                            max_depth=max_depth, C=C, parallel=workers)
                 start, end = mcts.search(timeout)
                 print(start, end)
                 c1.send_move(start, end)

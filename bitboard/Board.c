@@ -41,10 +41,7 @@ int draw_condition(node_t *n, Bitboard black, Bitboard white, Bitboard king)
 */
 Bitboard findAllForAll(Board from, uint8_t player)
 {
-    if (player == WHITE)
-        return Not(Or(Or(Or(Or(from.white, CASTLE), CITADEL), from.black), from.king));
-    else if (player == BLACK)
-        return Not(Or(Or(Or(Or(from.white, CASTLE), CITADEL), from.black), from.king));
+    return Not(Or(Or(Or(Or(from.white, CASTLE), CITADEL), from.black), from.king));
 }
 /*
 * find all legal possible moves for one pawn vertically 
