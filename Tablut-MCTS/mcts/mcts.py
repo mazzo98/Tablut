@@ -312,7 +312,7 @@ class SearchWorker (multiprocessing.Process):
         move, node = max(self._root_state.children.items(),
                          key=lambda item: (item[1].total_value / item[1].number_visits))
 
-        values = dict([(m, c.total_value / c.number_visits) for (m, c) in self._root_state.children.items()])
+        values = { move : (node.total_value / node.number_visits) }
 
         self._queue.put(values)
 
@@ -333,31 +333,13 @@ class MCTS(object):
         self._root = Root(game_state, playing_as,
                           remaining_moves=max_depth, C=C)
 
-    def new_root(self, game):
-        """
-        Set as root the node obtained by applying the specified move in the current state
-        """
-        #m = flatten_move(start, end)
-        for key, value in self._root.children.items():
-            compare = value.game.board.board == game.board.board
-            if compare.all() and value.game.turn == game.turn:
-                print(key ,'->', value)
-                self._root = value
-        else:
-            # move is not available among root children so we obtain it manually
-            # if self.game.turn is Player.WHITE:
-            #     self.game.white_move(start, end)
-            # else:
-            #     self.game.black_move(start, end)
-            self.game = game
-            self._root = Root(self.game, self.playing_as, remaining_moves=self.max_depth, C=self.C)
-
     def search(self, max_time):
         """
         Perform search using a specified amount of simulations
         Max time represents the number of secs before timeout
         """
         workers = []
+        results = {}
     
         #We use root parallelization approach where each workers create and explore its own tree.
         #At the end we merge resulting trees and we select best move from it
@@ -366,19 +348,11 @@ class MCTS(object):
             print("Workers %s" % i)
             workers.append(w)
         
-        for w in workers:
-            w.start()
-         
-        results = []
-        for w in workers:
-            results.append(w.get_result())
-            w.join()
+        [ w.start() for w in workers ]
 
-        values = collections.defaultdict(float)  
-        for r in results:
-            for (move, value) in r.items():
-                values[move] += value
+        for w in workers:
+            results.update(w.get_result())
         
-        move = max(values.items(), key=lambda item: item[1])[0]
+        move = max(results.items(), key=lambda item: item[1])[0]
        
         return deflatten_move(move)
