@@ -33,4 +33,4 @@ And last but not least: HAVE FUN!
 - [Jasmin De Cecco](https://github.com/jasmindc) 
 - [Matteo Di Lorenzi](https://github.com/m-dilorenzi)
 - [Lorenzo Magnanelli](https://github.com/rolench)
-- [Mattia Mazzoli the legend](https://github.com/mazzo98)
+- [Mattia Mazzoli THE LEGEND](https://github.com/mazzo98)
