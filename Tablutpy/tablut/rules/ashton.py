@@ -232,7 +232,6 @@ class Board(board.BaseBoard):
     def winning_condition(self):
         """
         Check if escape tiles are occupied by a king
-        TODO: Make this check the single tiles since now escapes are just normal tiles
         """
         escape_tiles = [(0, 1), (0, 2), (0, 6), (0, 7),
                         (1, 0), (1, 8),

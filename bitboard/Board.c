@@ -68,7 +68,7 @@ Bitboard findRowForOne(Bitboard from, int row)
     {
         res = Or(EMPTY, rightShift(NEW_BIT, WIDTH));
     }
-    for (int i = 0; i < WIDTH - 1; i++)
+    for (int i = 0; i < WIDTH; i++)
     {
         res = Or(res, rightShift(res, 1));
     }
