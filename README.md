@@ -6,7 +6,7 @@ The competition required us to stick to Ashton rules ([learn more here](https://
 
 ## A brief description
 - Bitboards: the game state is implemented using bitboards in order to speedup move inference;
-- Monte Carlo Tree Search: we aimed for the stars trying to code something like [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero).  Thus, we implemented a Monte Carlo Tree Search but we couldn't deal with the Neural Network part due to very tight schedules. Hopefully, we'll do it in the future! 
+- Monte Carlo Tree Search: we aimed for the stars trying to code something like [AlphaZero](https://en.wikipedia.org/wiki/AlphaZero).  Thus, we implemented a Monte Carlo Tree Search, but we couldn't deal with the Neural Network part due to very tight schedules. Hopefully, we'll do it in the future! 
 
 ## How to run
 You just need to clone this repository, install the requirements, and set up the environment:
