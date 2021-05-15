@@ -20,7 +20,7 @@ $ cd Tablut
 $ pip3 install -r requirements.txt
 ```
 ```
-$ sudo setup.sh
+$ sudo ./setup.sh
 ```
 Then you simply launch the program with:
 ```
