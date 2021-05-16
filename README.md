@@ -28,7 +28,7 @@ $ sudo ./setup.sh
 ```
 Then you simply launch the program with:
 ```
- $ ./runmyplayer.sh <white|black> timeout ip_server
+ $ ./runmyplayer <white|black> timeout ip_server
 ```
 And last but not least: HAVE FUN!
 
