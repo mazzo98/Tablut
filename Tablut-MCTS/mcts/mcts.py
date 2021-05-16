@@ -28,7 +28,7 @@ class Move(Structure):
                 ("end", Position) ]
 
 values = [0 for x in range(96)]
-lib = CDLL("/home/mattia/Desktop/Tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
+lib = CDLL("/tablut/bitboard/_board.so", mode=RTLD_GLOBAL)
 lib.findPossibleMoves.argtypes = [ Board, c_uint8 ]
 lib.findPossibleMoves.restype = POINTER(Move)
 
