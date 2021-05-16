@@ -2,7 +2,7 @@
 
 This is our implementation of an intelligent agent developed to play Tablut. It was built to take part in the 2021 Tablut Challenge of the Fundamentals of AI course held by prof. Paola Mello and prof. Federico Chesani (University of Bologna).
 
-The competition required us to stick to Ashton rules ([learn more here](https://www.heroicage.org/issues/13/ashton.php)) and Andrea Galassi' s server for communication with players and maintaining the game state. The server is available [this repository](https://github.com/AGalassi/TablutCompetition).
+The competition required us to stick to Ashton rules ([learn more here](https://www.heroicage.org/issues/13/ashton.php)) and Andrea Galassi' s server for communication with players and maintaining the game state. The server is available in [this repository](https://github.com/AGalassi/TablutCompetition).
 
 ## A brief description
 - Bitboards: the game state is implemented using bitboards in order to speedup move inference;
