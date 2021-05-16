@@ -134,13 +134,10 @@ PORTS = {
     "black": 5801
 }
 
-PLAYER_NAMES = {
-    "white": "JERRY",
-    "black": "TOM"
-}
+PLAYER_NAME = "TeamAngio"
 
-WHITE_DEFAULT_MAX_DEPTH = 23
-BLACK_DEFAULT_MAX_DEPTH = 35
+WHITE_DEFAULT_MAX_DEPTH = 46
+BLACK_DEFAULT_MAX_DEPTH = 70
 
 
 def setup_args():
@@ -176,7 +173,7 @@ if __name__ == "__main__":
     timeout = int(args.timeout) - 4
 
     c1 = Client(args.ip, PORTS[player_arg], player_arg)
-    c1.send_name(PLAYER_NAMES[player_arg])
+    c1.send_name(PLAYER_NAME)
 
     board = Board()
     game = Game(board)
